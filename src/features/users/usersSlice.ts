@@ -1,21 +1,22 @@
 /* eslint-disable no-param-reassign */
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getUsers } from '../../api/users';
+import { RootState } from '../../app/store';
 import { User } from '../../types/User';
 
-type UsersState = {
+export interface UsersState {
   items: User[];
+  author: User | null;
   loaded: boolean;
   hasError: boolean;
-  author: User | null;
-};
+}
 
 const initialState: UsersState = {
   items: [],
+  author: null,
   loaded: false,
   hasError: false,
-  author: null,
 };
 
 export const loadUsers = createAsyncThunk('users/loadUsers', async () => {
@@ -44,15 +45,19 @@ const usersSlice = createSlice({
       .addCase(loadUsers.rejected, state => {
         state.loaded = true;
         state.hasError = true;
+        state.items = [];
       });
   },
 });
 
 export const { setAuthor } = usersSlice.actions;
 
-export const selectUsers = (state: { users: UsersState }) => state.users.items;
+export const selectUsers = (state: RootState) => state.users.items;
 
-export const selectAuthor = (state: { users: UsersState }) =>
-  state.users.author;
+export const selectAuthor = (state: RootState) => state.users.author;
+
+export const selectUsersLoaded = (state: RootState) => state.users.loaded;
+
+export const selectUsersError = (state: RootState) => state.users.hasError;
 
 export default usersSlice.reducer;

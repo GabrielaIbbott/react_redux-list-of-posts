@@ -3,12 +3,13 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import * as commentsApi from '../../api/comments';
 import { Comment, CommentData } from '../../types/Comment';
+import { RootState } from '../../app/store';
 
-type CommentsState = {
+export interface CommentsState {
   items: Comment[];
   loaded: boolean;
   hasError: boolean;
-};
+}
 
 const initialState: CommentsState = {
   items: [],
@@ -25,11 +26,8 @@ export const loadPostComments = createAsyncThunk(
 
 export const createComment = createAsyncThunk(
   'comments/createComment',
-  async ({ postId, data }: { postId: number; data: CommentData }) => {
-    return commentsApi.createComment({
-      ...data,
-      postId,
-    });
+  async (comment: CommentData & { postId: number }) => {
+    return commentsApi.createComment(comment);
   },
 );
 
@@ -55,19 +53,19 @@ const commentsSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(loadPostComments.pending, state => {
-        state.items = [];
         state.loaded = false;
         state.hasError = false;
+        state.items = [];
       })
       .addCase(loadPostComments.fulfilled, (state, action) => {
-        state.items = action.payload;
         state.loaded = true;
         state.hasError = false;
+        state.items = action.payload;
       })
       .addCase(loadPostComments.rejected, state => {
-        state.items = [];
         state.loaded = true;
         state.hasError = true;
+        state.items = [];
       })
       .addCase(createComment.fulfilled, (state, action) => {
         state.items.push(action.payload);
@@ -88,13 +86,11 @@ const commentsSlice = createSlice({
 
 export const { clearComments } = commentsSlice.actions;
 
-export const selectComments = (state: { comments: CommentsState }) =>
-  state.comments.items;
+export const selectComments = (state: RootState) => state.comments.items;
 
-export const selectCommentsLoaded = (state: { comments: CommentsState }) =>
-  state.comments.loaded;
+export const selectCommentsLoaded = (state: RootState) => state.comments.loaded;
 
-export const selectCommentsError = (state: { comments: CommentsState }) =>
+export const selectCommentsError = (state: RootState) =>
   state.comments.hasError;
 
 export default commentsSlice.reducer;

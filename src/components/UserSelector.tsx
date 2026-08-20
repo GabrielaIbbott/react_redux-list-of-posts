@@ -3,7 +3,6 @@ import classNames from 'classnames';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
-  loadUsers,
   selectAuthor,
   selectUsers,
   setAuthor,
@@ -19,10 +18,6 @@ export const UserSelector: React.FC = () => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    dispatch(loadUsers());
-  }, [dispatch]);
-
-  useEffect(() => {
     if (!expanded) {
       return;
     }
@@ -33,7 +28,6 @@ export const UserSelector: React.FC = () => {
 
     document.addEventListener('click', handleDocumentClick);
 
-    // eslint-disable-next-line consistent-return
     return () => {
       document.removeEventListener('click', handleDocumentClick);
     };
@@ -41,6 +35,7 @@ export const UserSelector: React.FC = () => {
 
   const handleUserSelect = (user: User) => {
     dispatch(setAuthor(user));
+    setExpanded(false);
   };
 
   return (
@@ -71,7 +66,10 @@ export const UserSelector: React.FC = () => {
             <a
               key={user.id}
               href={`#user-${user.id}`}
-              onClick={() => handleUserSelect(user)}
+              onClick={event => {
+                event.preventDefault();
+                handleUserSelect(user);
+              }}
               className={classNames('dropdown-item', {
                 'is-active': user.id === selectedUser?.id,
               })}

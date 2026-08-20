@@ -1,21 +1,21 @@
 /* eslint-disable no-param-reassign */
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { getUserPosts } from '../../api/posts';
 import { Post } from '../../types/Post';
+import { RootState } from '../../app/store';
 
-type PostsState = {
+export interface PostsState {
   items: Post[];
   loaded: boolean;
   hasError: boolean;
-  selectedPost: Post | null;
-};
+}
 
 const initialState: PostsState = {
   items: [],
   loaded: false,
   hasError: false,
-  selectedPost: null,
 };
 
 export const loadUserPosts = createAsyncThunk(
@@ -28,49 +28,31 @@ export const loadUserPosts = createAsyncThunk(
 const postsSlice = createSlice({
   name: 'posts',
   initialState,
-  reducers: {
-    setSelectedPost: (state, action: PayloadAction<Post | null>) => {
-      state.selectedPost = action.payload;
-    },
-    clearPosts: state => {
-      state.items = [];
-      state.selectedPost = null;
-      state.loaded = false;
-      state.hasError = false;
-    },
-  },
+  reducers: {},
   extraReducers: builder => {
     builder
       .addCase(loadUserPosts.pending, state => {
-        state.items = [];
         state.loaded = false;
         state.hasError = false;
-        state.selectedPost = null;
+        state.items = [];
       })
       .addCase(loadUserPosts.fulfilled, (state, action) => {
-        state.items = action.payload;
         state.loaded = true;
         state.hasError = false;
+        state.items = action.payload;
       })
       .addCase(loadUserPosts.rejected, state => {
-        state.items = [];
         state.loaded = true;
         state.hasError = true;
+        state.items = [];
       });
   },
 });
 
-export const { setSelectedPost, clearPosts } = postsSlice.actions;
+export const selectPosts = (state: RootState) => state.posts.items;
 
-export const selectPosts = (state: { posts: PostsState }) => state.posts.items;
+export const selectPostsLoaded = (state: RootState) => state.posts.loaded;
 
-export const selectPostsLoaded = (state: { posts: PostsState }) =>
-  state.posts.loaded;
-
-export const selectPostsError = (state: { posts: PostsState }) =>
-  state.posts.hasError;
-
-export const selectSelectedPost = (state: { posts: PostsState }) =>
-  state.posts.selectedPost;
+export const selectPostsError = (state: RootState) => state.posts.hasError;
 
 export default postsSlice.reducer;
